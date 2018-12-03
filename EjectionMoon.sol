@@ -78,7 +78,7 @@ contract EjectionMoon {
     if (marbleEarth.isVoter(voterAddress)) {
       return true;
     }  
-    return false;
+    return false;   
    }
 
    function isSupporter(address supporter, address voter) view public returns (bool) {
@@ -89,11 +89,13 @@ contract EjectionMoon {
 
    }
 
-  function vote(address supportedAddress) public {
-
+  function vote(address supportedAddress, bool vote) public {
       proposedEjections[supportedAddress].supportMap[msg.sender] = true;
-      proposedEjections[supportedAddress].yea++;
-
+    if (bool) {
+      proposedEjections[supportedAddress].yea++; }
+    else if (!bool) {
+      proposedEjections[supportedAddress].nay++; }
+    }
    }
 
 function wins(address supportedAddress) view public returns (bool) {

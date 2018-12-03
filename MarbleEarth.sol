@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 contract MarbleEarth {
 
@@ -13,7 +13,6 @@ contract MarbleEarth {
   }
 
   MBLToken public tokenContract = MBLToken(0x3DADd4EC1a4Cfc1D035cD6C65262D06294Fe626b);
-  LotteryMoon public lotteryContract = LotteryMoon(lotteryAddress);
   uint32 moonElectionPeriod = 604800;
 
   address[] addresses = [0xAe4Ef52D81Ed41f8D84bc6512aa52D050c488ddd];
@@ -113,10 +112,10 @@ contract MarbleEarth {
     return false;
   } 
 
-  function castVote(address moonAddress, address voterAddress, bool supports) public {
+  function castVote(address moonAddress, address voterAddress, bool supporting) public {
       proposedMoons[moonAddress].supportMap[voterAddress] = true;
 
-      if (supports) { 
+      if (supporting) { 
         proposedMoons[moonAddress].yea++;
 
       }
@@ -196,10 +195,11 @@ function getYeaNayRatio(address moonAddress) view public returns (uint64) {
   }
 
   function getBalance() view public returns (uint256) {
-        return tokenContract.balanceOf(this);
+        return tokenContract.balanceOf(address(this));
     }
 
-  function getIdentitiesByIndex(uint index) view external returns (string) {
+  function getIdentitiesByIndex(uint index) view external returns (string memory) {
+
     return identities[index];
   }
 
@@ -233,11 +233,11 @@ function getYeaNayRatio(address moonAddress) view public returns (uint64) {
     addresses.push(voterAddress);
   }
 
-  function addVoterIdentity(string voterIdentity) public {
+  function addVoterIdentity(string memory voterIdentity) public {
     identities.push(voterIdentity);
   }
 
-  function addVoterToMap(address voterAddress, string voterIdentity) public {
+  function addVoterToMap(address voterAddress, string memory voterIdentity) public {
     voterMap[voterAddress] = voterIdentity;
   }
 
@@ -246,7 +246,7 @@ function getYeaNayRatio(address moonAddress) view public returns (uint64) {
   }
 
 
-  function addVoter(address voterAddress, address verifierAddress, string identity) external {
+  function addVoter(address voterAddress, address verifierAddress, string calldata identity) external {
   
     if (!sentByVerificationAddress() || isVoter(voterAddress))
       return;
@@ -255,11 +255,14 @@ function getYeaNayRatio(address moonAddress) view public returns (uint64) {
     addVoterIdentity(identity);
     addVoterToMap(voterAddress, identity);
     voteCountBump();
-    lotteryContract.enterLottery(voterAddress, verifierAddress);
+    enterLottery(voterAddress, verifierAddress);
 
   }
 
 
+  function enterLottery(address voterAddress, address verifierAddress) public {
+    LotteryMoon(lotteryAddress).enterLottery(voterAddress, verifierAddress);
+  }
   function rewardLotteryWinner(address winnerAddress) public returns (bytes32) {
 
              tokenContract.transfer(winnerAddress, getBalance()/5);

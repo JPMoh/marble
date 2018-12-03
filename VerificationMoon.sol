@@ -1,9 +1,9 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.0;
 // We have to specify what version of compiler this code will compile with
 
  interface MarbleEarth { 
 
-  function addVoter(address voterAddress, address verifierAddress, string identity) external; 
+  function addVoter(address voterAddress, address verifierAddress, string calldata proof) external; 
   function isVoter(address potentialVoter) external returns (bool);
   function getRollSize() external returns (uint);
 
@@ -29,7 +29,7 @@ contract VerificationMoon {
 
 
 
-  function propose(string proof) external {
+  function propose(string calldata proof) external {
 
     if (alreadyProposed(msg.sender)) {
       return;
@@ -48,14 +48,14 @@ contract VerificationMoon {
     return false;
    }
 
-  function addNewProposed(address newProposed, string proof) public {
+  function addNewProposed(address newProposed, string memory proof) public {
       
       proposedVoters[newProposed] = NewVoter(block.timestamp, 0, 0, proof);
 
    }
 
 
-  function supportNewVoter(address supportedAddress) external {
+  function castVote(address supportedAddress, bool preference) external {
     if (!isVoter(msg.sender)) {
       return;
     }  
@@ -67,7 +67,7 @@ contract VerificationMoon {
       return;
     }
 
-    vote(supportedAddress);
+    vote(supportedAddress, preference);
     
     if (wins(supportedAddress)) {
         addVoter(supportedAddress, msg.sender, proposedVoters[supportedAddress].proof);
@@ -90,11 +90,13 @@ contract VerificationMoon {
 
    }
 
-  function vote(address supportedAddress) public {
-
+  function vote(address supportedAddress, bool preference) public {
       proposedVoters[supportedAddress].supportMap[msg.sender] = true;
-      proposedVoters[supportedAddress].yea++;
-
+    if (preference) {
+      proposedVoters[supportedAddress].yea++; }
+    else if (!preference) {
+      proposedVoters[supportedAddress].nay++; }
+    
    }
 
 function wins(address supportedAddress) view public returns (bool) {
@@ -130,7 +132,9 @@ function electionLongEnough(address voterAddress) view public returns (bool) {
 function getYeaNayRatio(address voterAddress) view public returns (uint) {
 
       uint yeas = getYeasByVoter(voterAddress);
-      return (yeas*100)/(getNaysByVoter(voterAddress)+yeas);
+      uint nays = getNaysByVoter(voterAddress);
+      return (yeas*100)/(nays+yeas);
+      
   }
 
 
@@ -144,11 +148,11 @@ function getYeaNayRatio(address voterAddress) view public returns (uint) {
   }
 
 
-   function addVoter(address newVoter, address verifier, string proof) public {
+   function addVoter(address newVoter, address verifier, string memory proof) public {
       marbleEarth.addVoter(newVoter, verifier, proof);
    }
 
-  function getProofByAddress(address proposedAddress) view external returns (string) {
+  function getProofByAddress(address proposedAddress) view external returns (string memory returnValue) {
     return proposedVoters[proposedAddress].proof;
   }  
 
