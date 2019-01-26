@@ -1,0 +1,3 @@
+{
+	"shell_cmd": "solc --bin MarbleEarth.sol; solc --abi MarbleEarth.sol"
+}
